@@ -1,8 +1,7 @@
 # Docker 镜像构建
 
-# 选择基础镜像
-FROM registry.cn-hangzhou.aliyuncs.com/maven/maven:3.8.7-openjdk-17 AS build
-
+# 使用阿里云镜像加速器拉取基础镜像
+FROM dvudijk2.mirror.aliyuncs.com/library/maven:3.8.7-openjdk-17 AS build
 
 
 # 解决容器时期与真实时间相差 8 小时的问题
