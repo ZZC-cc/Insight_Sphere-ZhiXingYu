@@ -1,12 +1,13 @@
-FROM maven:3.8.1-jdk-17-slim as builder
+FROM openjdk:17-jdk-slim AS builder
 
-# Copy local code to the container image.
+# 安装 Maven
+RUN apt-get update && apt-get install -y maven
+
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Build a release artifact.
+# 构建项目
 RUN mvn package -DskipTests
 
-# Run the web service on container startup.
-CMD ["java","-jar","/app/target/springboot-Backend-0.0.1-SNAPSHOT.jar","--spring.profiles.active=prod"]
+CMD ["java", "-jar", "/app/target/springboot-Backend-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=prod"]
