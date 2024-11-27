@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # 将本地打包好的 JAR 文件复制到容器中
-COPY target/springboot-Backend-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY target/springboot-Backend-0.0.1.jar /app/app.jar
 
 EXPOSE 9666
 
