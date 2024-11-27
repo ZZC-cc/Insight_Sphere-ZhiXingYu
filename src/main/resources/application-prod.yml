@@ -1,0 +1,106 @@
+# 公共配置文件
+spring:
+  # 支持 swagger3
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # session 配置
+  session:
+    # todo 取消注释开启分布式 session（须先配置 Redis）
+    # store-type: redis
+    # 30 天过期
+    timeout: 2592000
+  # 数据库配置
+  # todo 需替换配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://sh-cynosdbmysql-grp-0tfc89vc.sql.tencentcdb.com:24795/cc_mysql
+    #    url: jdbc:mysql://54.221.30.201:3306/cc_mysql
+    #    url: jdbc:mysql://127.0.0.1:3306/cc_mysql
+    username: root
+    password: Codercc42
+    # Redis 配置
+    redis:
+      database: 3
+      host: 127.0.0.1
+      port: 6379
+      timeout: 5000
+      password:
+    # Elasticsearch 配置
+  elasticsearch:
+    uris: http://120.77.82.157:9200
+    username: root
+    password: codercc
+  # 文件上传
+  servlet:
+    multipart:
+      # 大小限制
+      max-file-size: 10MB
+server:
+  address: 0.0.0.0
+  port: 9666
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        same-site: none
+        secure: true
+        max-age: 2592000
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # 全局逻辑删除的实体字段名
+      logic-delete-value: 1 # 逻辑已删除值（默认为 1）
+      logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+# 微信相关
+wx:
+  # 微信公众平台
+  # todo 需替换配置
+  mp:
+    token: xxx
+    aesKey: xxx
+    appId: xxx
+    secret: xxx
+    config-storage:
+      http-client-type: HttpClient
+      key-prefix: wx
+      redis:
+        host: 127.0.0.1
+        port: 6379
+      type: Memory
+  # 微信开放平台
+  # todo 需替换配置
+  open:
+    appId: xxx
+    appSecret: xxx
+# 对象存储
+# todo 需替换配置
+# 对象存储
+cos:
+  client:
+    accessKey: AKIDU383mPuGUVL2c1KWZQ8e1GJORURJ4iHk
+    secretKey: Sn187zkPyOiw2893qbMzdDg2HKAnGZlo
+    region: ap-guangzhou
+    bucket: zcc-1305301692
+geetest:
+  id: "25536dc969d9ae04415efa9c9867e2c1"
+  key: "00bb254e947dc3ae0fb2866a3422adad"
+  newFailback: true
+openai:
+  api:
+    key: sk-BPY1d4810da83854dcfdb429c0d0caa53e700279226IAHNn
+alipay:
+  appId: 9021000141647461
+  merchantPrivateKey: MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCI8Mxxd5tA0yDhGJgwQs6ZjVMk00lJGeMUHcPQsjsRNHE579hBjWxEF/zByC5axY1NSUqmHRb5woqcSyQYm9DtYKASp9hxgAHPA9Qq0ysfkYMDI5EcaoZ+pgm2Azdp5znTkt5mW1A0zTcS4uFkhUQd489oGNgCP/GRK/d3kF5L74EeKJ1tJUNjpgWJ0mpBNf3bvuGn/oi7nk4F/QUDmwI+bMMBvVPu9PJ25Nxc+1dfLA+C52oHEoxts/IWOdEyrI9tk81Pk4K3wLASlEGh9hVNnq9Ub0syli9/6aIkvLY/V3RbhvGnNBw1GIvp5slKi0/fdjOdH4yfphuGeb/Gwy+JAgMBAAECggEAKuZc9dMFhSpfK4Vb8AqN1JbsjCXQ2KDOfbfRZ2jejkZCjmbv9aFLYI2vNjnzI6at3J9wTlfgob/rUolLtpXhvuu9WfrRGMWES4kkh4H+CXa5d1tGE4PfvH9hnW6mhnvUps5k8+X5W4FKlpUTDT2emEqM6EyYJyRHFjaS4RcOI3VgG6OFM7+30QvtG6k+anQ9TrmJvYEbfL/klqLY/fKCSxJqpFGeAR1YxHJIdmbaRXkPDoJ7HwbeXaoNzTAbqnLnltDuGaVc6n+s7m2nzSSuZbVtM1HujqqjEA+nlf/vv7gcF5MQrxr+4yZOv73JfEPbEWB7142pDRRvOi4IKISFcQKBgQDGAZKK6yyRBhY0vp3oHvo3mcn/BFY4R7lgM+R36JLkgXgPrmyd1SXit90LJ5QzHWX7C17RB/wXNi2GRxBKXi4gq9n2ij0YyHWQs02e5HcaCDkuxJ00td0nOhh71y+BDSo4plGQIkCyxHiKTgWGVi1NOTx2gSsp0N4/UcxLJ5MgpQKBgQCxDI5H+9Gsofg6iR2Dvvj00TB394aJNpE1T6C6rqIEdNBrXtVW6owRO4t6XcX/O4kAHEqk333VQjF6Ehi+y9VUCg1FDTC5wz7o+ze+sreCThCKN0bpNHmrIijJKgiUJr6S23YXcG5Rgp2DhbQVbgXDcPnrfkQa2kiSxLpk5EHaFQKBgASRdLgPxO9znH+LBkmcrVkrCyX/C54wyW4WxGafzwPGmOaDt63MhRs98rOXLiwfuYKZOI7KCF7guRwn95A/rADE9jph5hb0SQIVoOzRiI3pMqiJkLbumzOUe4wf4tCvZRH5hFg28hctwTovoqD+y/zEHUj+oehNEVOUp4n0V8ihAoGBAJRS6H/1v1rY9pRTep58xySSfACFJfid9lirNQQweRsyocjR0fjW1jE5qUgCd3Wz8rpc+UvW0BxxL/IMZx6wtS+KnENVIZT+tR2KGNFx97r6m3CvjoCgra1pGLIuvLEhJFbz9KL+Ve2Dd2JQCOZLHhj19OoNBhFY/aO3nFAZyfFhAoGAc8M2JuIssY7wwoViRsDkKBvgFKLQtqr7fL3nLtDiEbUDY/Z/6gu1V+h+yTPlBONNJexfXFgcNc9m1lIHfHO6qP2WsITelxGApLgNXk6lNbTjZa/9eV55Z+8Lyw4TyfBMJrRUikQd8q+trdoRWKMXcItBa9pMiX9kvHOaBiVErmM=
+  alipayPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiPDMcXebQNMg4RiYMELOmY1TJNNJSRnjFB3D0LI7ETRxOe/YQY1sRBf8wcguWsWNTUlKph0W+cKKnEskGJvQ7WCgEqfYcYABzwPUKtMrH5GDAyORHGqGfqYJtgM3aec505LeZltQNM03EuLhZIVEHePPaBjYAj/xkSv3d5BeS++BHiidbSVDY6YFidJqQTX9277hp/6Iu55OBf0FA5sCPmzDAb1T7vTyduTcXPtXXywPgudqBxKMbbPyFjnRMqyPbZPNT5OCt8CwEpRBofYVTZ6vVG9LMpYvf+miJLy2P1d0W4bxpzQcNRiL6ebJSotP33YznR+Mn6Ybhnm/xsMviQIDAQAB
+  notifyUrl: http://127.0.0.1:9666/api/alipay/notify
+  returnUrl: http://127.0.0.1:9666/api/alipay/return
+  signType: RSA2
+  charset: utf-8
+  # 我的支付宝网关地址
+  gatewayUrl: https://openapi-sandbox.dl.alipaydev.com/gateway.do
