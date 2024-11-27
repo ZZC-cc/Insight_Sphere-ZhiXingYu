@@ -1,12 +1,13 @@
-FROM maven:3.8.1-jdk-8-slim as builder
+# 使用轻量级 JDK 运行时镜像
+FROM openjdk:17-jdk-slim
 
-# Copy local code to the container image.
+# 定义工作目录
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
 
-# Build a release artifact.
-RUN mvn package -DskipTests
+# 将本地打包好的 JAR 文件复制到容器中
+COPY target/springboot-Backend-0.0.1-SNAPSHOT.jar /app/app.jar
 
-# Run the web service on container startup.
-CMD ["java","-jar","/app/target/springboot-Backend-0.0.1-SNAPSHOT.jar","--spring.profiles.active=prod"]
+EXPOSE 9666
+
+# 运行 Spring Boot 应用
+CMD ["java", "-jar", "/app/app.jar", "--spring.profiles.active=prod"]
