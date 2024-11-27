@@ -22,10 +22,10 @@ spring:
     # Redis 配置
     redis:
       database: 3
-      host: 127.0.0.1
+      host: 54.221.30.201
       port: 6379
-      timeout: 5000
-      password:
+      timeout: 10000
+      password: Codercc27
     # Elasticsearch 配置
   elasticsearch:
     uris: http://120.77.82.157:9200
