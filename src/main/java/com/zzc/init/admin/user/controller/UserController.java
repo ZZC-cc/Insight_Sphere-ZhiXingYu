@@ -12,19 +12,13 @@ import com.zzc.init.common.ResultUtils;
 import com.zzc.init.constant.UserConstant;
 import com.zzc.init.exception.BusinessException;
 import com.zzc.init.exception.ThrowUtils;
-import com.zzc.init.utils.GeeTest.sdk.GeetestLib;
-import com.zzc.init.utils.GeeTest.sdk.entity.GeetestLibResult;
-import com.zzc.init.utils.GeeTest.sdk.enums.DigestmodEnum;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 用户接口
@@ -37,33 +31,6 @@ public class UserController {
 
     @Resource
     private UserService userService;
-
-    @Value("${geetest.id}")
-    private String GEETEST_ID;
-
-    @Value("${geetest.key}")
-    private String GEETEST_KEY;
-
-    /**
-     * 获取极验初始化信息
-     *
-     * @param request
-     * @return
-     */
-    @Operation(summary = "获取极验初始化信息")
-    @GetMapping("/geetest/register")
-    public BaseResponse<Object> initGeetest(HttpServletRequest request) {
-        GeetestLib gtSdk = new GeetestLib(GEETEST_ID, GEETEST_KEY);
-        Map<String, String> params = new HashMap<>();
-        params.put("user_id", "test"); // 可根据具体业务设置 user_id
-
-        GeetestLibResult result = gtSdk.register(DigestmodEnum.MD5, params);
-
-        if (result.getStatus() != 1) {
-            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "极验初始化失败");
-        }
-        return ResultUtils.success(result.getData());
-    }
 
 
     /**
@@ -136,21 +103,8 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数不能为空");
         }
         long result = userService.register(registerUserDto);
-        return ResultUtils.success("注册用户成功！用户id：" + result);
+        return ResultUtils.success("注册用户成功！");
     }
-
-//    /**
-//     * 获取当前登录用户
-//     *
-//     * @param request
-//     * @return
-//     */
-//    @Operation(summary = "获取当前登录用户接口")
-//    @GetMapping("/get/login")
-//    public BaseResponse<UserVO> getLoginUser(HttpServletRequest request) {
-//        UserVO userVO = userService.getLoginUser(request);
-//        return ResultUtils.success(userVO);
-//    }
 
 
     /**
@@ -249,6 +203,44 @@ public class UserController {
     }
 
     /**
+     * 验证邮箱是否存在
+     */
+    @Operation(summary = "验证邮箱是否存在接口")
+    @GetMapping("/check/email")
+    public BaseResponse<Boolean> checkEmail(@RequestParam String email) {
+        return ResultUtils.success(userService.checkEmailExist(email));
+    }
+
+    /**
+     * 验证手机号是否存在
+     */
+    @Operation(summary = "验证手机号是否存在接口")
+    @GetMapping("/check/phone")
+    public BaseResponse<Boolean> checkPhone(@RequestParam String phone) {
+        return ResultUtils.success(userService.checkMobileExist(phone));
+    }
+
+    /**
+     * 邮箱登录
+     */
+    @Operation(summary = "邮箱登录")
+    @PostMapping("/login/email")
+    public BaseResponse<UserVO> loginByEmail(@RequestParam String email, @RequestParam String code) {
+        UserVO userVO = userService.loginByEmail(email, code);
+        return ResultUtils.success(userVO);
+    }
+
+    @Operation(summary = "开通会员")
+    @PostMapping("/vip/open")
+    public BaseResponse<String> openVip(@RequestParam Long userId, @RequestParam int months) {
+        if (userId == null || months <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID或开通月份不合法");
+        }
+        userService.openVip(userId, months);
+        return ResultUtils.success("会员开通成功！");
+    }
+
+    /**
      * 多类型搜索
      *
      * @param searchText 搜索文本
@@ -261,17 +253,5 @@ public class UserController {
         return ResultUtils.success(userVOList);
     }
 
-    /**
-     * 批量删除用户
-     */
-    @Operation(summary = "批量删除用户接口")
-    @DeleteMapping("/delete/users")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<String> deleteUsers(@RequestBody List<Long> user_ids) {
-        boolean res = userService.deleteUsers(user_ids);
-        if (!res) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "批量删除用户失败");
-        }
-        return ResultUtils.success("批量删除用户成功！");
-    }
+
 }

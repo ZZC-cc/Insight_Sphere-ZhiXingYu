@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.zzc.init.admin.user.model.entity.User;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -131,23 +132,8 @@ public class UserVO implements Serializable {
      * @return UserVO 对象
      */
     public static UserVO convertToUserVO(User user) {
-        if (user == null) {
-            return null;
-        }
         UserVO userVO = new UserVO();
-        userVO.setUser_id(user.getUser_id());
-        userVO.setUsername(user.getUsername());
-        userVO.setRole(user.getRole());
-        userVO.setAvatar(user.getAvatar());
-        userVO.setName(user.getName());
-        userVO.setSex(user.getSex());
-        userVO.setEmail(user.getEmail());
-        userVO.setMobile(user.getMobile());
-        userVO.setStatus(user.getStatus());
-        userVO.setAddress(user.getAddress());
-        userVO.setDescription(user.getDescription());
-        userVO.setCreateTime(user.getCreateTime());
-        userVO.setUpdateTime(user.getUpdateTime());
+        BeanUtils.copyProperties(user, userVO);
         // 若有其他字段可添加
         return userVO;
     }

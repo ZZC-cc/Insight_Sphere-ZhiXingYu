@@ -48,6 +48,21 @@ public interface UserService extends IService<User> {
 
     boolean updateEmail(@RequestBody String email, long user_id);
 
+    UserVO loginByEmail(String email, String code);
+
     UserVO getUserInfo(String token);
+
+    User getUserByEmail(String email);
+
+    boolean updatePasswordByEmail(String email, String newPassword);
+
+    /**
+     * 验证邮箱是否存在
+     */
+    boolean checkEmailExist(String email);
+
+    boolean checkMobileExist(String mobile);
+
+    void openVip(Long userId, int months);
 }
 

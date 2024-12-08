@@ -57,16 +57,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    /**
-     * 用户登录
-     *
-     * @param loginRequest
-     * @return
-     */
     @Override
     public UserVO login(LoginRequest loginRequest) {
 
-        //1. 验证验证码
+        // 1. 验证验证码
         GeetestLib gtSdk = new GeetestLib(GEETEST_ID, GEETEST_KEY);
         GeetestLibResult result = gtSdk.successValidate(
                 loginRequest.getGeetestChallenge(),
@@ -84,13 +78,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 2. 校验账号密码
         if (username.length() < 3) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号应不少于3位");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号/手机号应不少于3位");
         }
         if (password.length() < 6) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码长度应不少于6位");
         }
+
+        // 判断输入是否为手机号的简单方法（根据实际情况可使用正则等更严格校验）
+        boolean isPhone = username.matches("\\d{11}");  // 简单示例：11位纯数字表示手机号
+
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
+        if (isPhone) {
+            queryWrapper.eq("mobile", username);
+        } else {
+            queryWrapper.eq("username", username);
+        }
+
         User user = this.baseMapper.selectOne(queryWrapper);
         if (user == null) {
             log.info("用户不存在");
@@ -110,11 +113,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         opsForValue.set(userKey + ":token", token, TOKEN_EXPIRE_HOURS, TimeUnit.HOURS);
         opsForValue.set(userKey, String.valueOf(user), TOKEN_EXPIRE_HOURS, TimeUnit.HOURS);
 
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user, userVO);
+        userVO.setToken(token);
+        return userVO;
+    }
+
+
+    /**
+     * 邮箱登录
+     */
+    @Override
+    public UserVO loginByEmail(String email, String code) {
+        //1. 验证验证码
+        String redisKey = "EMAIL_CODE_" + email;
+        String redisCode = redisTemplate.opsForValue().get(redisKey);
+        if (!Objects.equals(code, redisCode)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
+        }
+
+
+        // 2. 校验邮箱
+        User user = getUserByEmail(email);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        // 3. 将用户信息和 token 存入 Redis 中
+        String token = JwtUtil.generateToken(user);
+        String userKey = USER_SESSION_PREFIX + user.getUser_id();
+        ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
+        opsForValue.set(userKey + ":token", token, TOKEN_EXPIRE_HOURS, TimeUnit.HOURS);
+        opsForValue.set(userKey, String.valueOf(user), TOKEN_EXPIRE_HOURS, TimeUnit.HOURS);
+        redisTemplate.delete(redisKey);
+
 
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
         userVO.setToken(token);
         return userVO;
+
     }
 
     /**
@@ -269,12 +306,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private static void validateRegisterUserDto(RegisterUserDto registerUserDto) {
         String username = registerUserDto.getUsername();
         String password = registerUserDto.getPassword();
-        String avatar = registerUserDto.getAvatar();
         String name = registerUserDto.getName();
         String sex = registerUserDto.getSex();
         String email = registerUserDto.getEmail();
         String mobile = registerUserDto.getMobile();
-        if (StringUtils.isAnyBlank(username, password, avatar, name, sex.toString(), email, mobile)) {
+        if (StringUtils.isAnyBlank(username, password, name, sex.toString(), email, mobile)) {
             if (StringUtils.isBlank(username)) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号不能为空");
             }
@@ -342,7 +378,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user.setStatus(1);
             user.setRole(UserRoleEnum.USER.getValue());
             user.setCreateTime(LocalDateTime.now());
-            if (registerUserDto.getAvatar().isEmpty()) {
+            if (registerUserDto.getAvatar() == null) {
                 user.setAvatar("https://zcc-1305301692.cos.ap-guangzhou.myqcloud.com/avatar/1754526766348963841/QSBVqYU7-avtar.png");
             }
 
@@ -386,7 +422,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean updateByUser(@RequestBody UpdateByUserRequest updateByUserRequest) {
-
         // 1. 校验
         validateUpdateParams(updateByUserRequest);
 
@@ -405,13 +440,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
         }
 
-        // 3. 更新
+        // 3. 更新数据库
         BeanUtils.copyProperties(updateByUserRequest, user);
         user.setUpdateTime(LocalDateTime.now());
+        boolean updateResult = this.updateById(user);
 
-        // 4. 保存更新
-        return this.updateById(user);
+        // 4. 同步更新到 Redis
+        String token = JwtUtil.generateToken(user); // 重新生成 Token
+        String userKey = USER_SESSION_PREFIX + user.getUser_id();
+        ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
+        opsForValue.set(userKey, String.valueOf(user), TOKEN_EXPIRE_HOURS, TimeUnit.HOURS);
+        opsForValue.set(userKey + ":token", token, TOKEN_EXPIRE_HOURS, TimeUnit.HOURS);
+
+        return updateResult;
     }
+
 
     /**
      * 校验更新用户信息参数
@@ -739,5 +782,79 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setEmail(email);
         return this.updateById(user);
     }
+
+
+    @Override
+    public User getUserByEmail(String email) {
+        log.warn("getUserByEmail: " + email);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("email", email);
+        User user = this.baseMapper.selectOne(queryWrapper);
+        return user == null ? null : user;
+    }
+
+    @Override
+    public boolean updatePasswordByEmail(String email, String newPassword) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("email", email);
+        User user = this.getOne(queryWrapper);
+
+        if (user == null) {
+            return false;
+        }
+
+        // 加密新密码
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + newPassword).getBytes());
+        user.setPassword(encryptPassword);
+        user.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(user);
+    }
+
+    /**
+     * 验证邮箱是否存在
+     */
+    @Override
+    public boolean checkEmailExist(String email) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("email", email);
+        User user = this.getOne(queryWrapper);
+        return user != null;
+    }
+
+    /**
+     * 验证手机号否存在
+     */
+    @Override
+    public boolean checkMobileExist(String mobile) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("mobile", mobile);
+        User user = this.getOne(queryWrapper);
+        return user != null;
+    }
+
+    @Override
+    public void openVip(Long userId, int months) {
+        User user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime newVipEndTime;
+
+        // 计算会员到期时间
+        if (user.getVipEndTime() != null && user.getVipEndTime().isAfter(now)) {
+            newVipEndTime = user.getVipEndTime().plusMonths(months);
+        } else {
+            newVipEndTime = now.plusMonths(months);
+        }
+
+        // 更新用户信息
+        user.setVipStartTime(user.getVipStartTime() == null ? now : user.getVipStartTime());
+        user.setVipEndTime(newVipEndTime);
+        this.updateById(user);
+    }
+
 
 }
