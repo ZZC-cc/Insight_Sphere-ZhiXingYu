@@ -11,12 +11,15 @@ import java.io.Serializable;
 public class OrderCreateRequest implements Serializable {
 
     private Long productId;
-    
+
 
     /**
      * 支付方式
      */
     private String payMethod;
+
+    private String type;
+    private Integer count;
 
 
 }

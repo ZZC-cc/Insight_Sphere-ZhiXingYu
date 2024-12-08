@@ -1,86 +1,88 @@
-# QuickInit Pro 管理系统后端初始模板
+# 项目名称
 
-> 作者：[ZZC-cc](https://github.com/ZZC-cc/)
+## 项目简介
 
+本项目是一个基于 Spring Boot 的后端服务，旨在提供一系列功能以支持前端应用的开发。项目集成了多种第三方服务和工具，如
+Redis、MySQL、Elasticsearch、极验验证码、支付宝支付等，旨在为用户提供高效、可靠的服务。
 
-基于 Java SpringBoot 的项目初始模板，整合了常用框架和主流业务的示例代码。
+## 功能概述
 
-[toc]
+### 用户管理
 
-## 模板特点
+- **用户注册与登录**：支持用户通过邮箱注册和登录，提供验证码验证功能以增强安全性。
+- **用户角色管理**：支持不同角色的用户访问不同的功能模块，确保系统的安全性和灵活性。
+- **用户信息管理**：用户可以更新个人信息，包括用户名、密码、邮箱等。
 
-### 主流框架 & 特性
+### 内容管理
 
-- Spring Boot 2.7.x（贼新）
-- Spring MVC
-- MyBatis + MyBatis Plus 数据访问（开启分页）
-- Spring Boot 调试工具和项目处理器
-- Spring AOP 切面编程
-- Spring Scheduler 定时任务
-- Spring 事务注解
+- **帖子管理**：用户可以创建、编辑、删除帖子。支持通过 Elasticsearch 进行全文搜索，提升搜索效率。
+- **评论管理**：支持对帖子进行评论，评论可以嵌套显示，形成评论树。
+- **通知管理**：管理员可以发布系统通知，用户可以查看最新通知。
+
+### AI 服务
+
+- **AI 内容生成**：集成 OpenAI 的模型接口，支持根据用户输入生成内容摘要和标题。
+- **AI 聊天**：提供 AI 聊天功能，用户可以与 AI 进行自然语言对话。
+
+### 支付功能
+
+- **支付宝支付**：集成支付宝支付功能，支持用户进行在线支付。
+- **支付通知**：支持支付成功后的异步通知，确保支付状态的实时更新。
 
 ### 数据存储
 
-- MySQL 数据库
-- Redis 内存数据库
-- Elasticsearch 搜索引擎
-- 腾讯云 COS 对象存储
+- **MySQL 数据库**：用于存储用户、帖子、评论等核心数据。
+- **Redis 缓存**：用于缓存用户会话、验证码等临时数据，提升系统响应速度。
+- **Elasticsearch**：用于存储和搜索帖子内容，支持全文检索。
 
-### 工具类
+### 对象存储
 
-- Easy Excel 表格处理
-- Hutool 工具库
-- Gson 解析库
-- Apache Commons Lang3 工具类
-- Lombok 注解
+- **腾讯云 COS**：用于存储用户上传的文件，如图片、文档等，确保数据的安全性和可用性。
 
-### 业务特性
+### 安全与权限
 
-- Spring Session Redis 分布式登录
-- 全局请求响应拦截器（记录日志）
-- 全局异常处理器
-- 自定义错误码
-- 封装通用响应类
-- Swagger + Knife4j 接口文档
-- 自定义权限注解 + 全局校验
-- 全局跨域处理
-- 长整数丢失精度解决
-- 多环境配置
+- **权限控制**：基于用户角色的权限控制，确保不同用户只能访问其权限范围内的功能。
+- **数据加密**：对敏感数据进行加密存储，确保数据安全。
 
-## 业务功能
+### 其他功能
 
-- 用户登录、注册、注销、更新、检索、权限管理
-- 帖子创建、删除、编辑、更新、数据库检索、ES 灵活检索
-- 评论创建、删除、编辑、更新、数据库检索
-- 商品创建、删除、编辑、更新、数据库检索
-- 订单创建、删除、编辑、更新、数据库检索
+- **任务管理**：用户可以创建和管理任务，支持任务的多状态管理。
+- **日志记录**：系统记录用户操作日志，便于后续审计和问题排查。
+- **定时任务**：支持定时任务功能，如定期同步数据到 Elasticsearch。
 
-### 单元测试
+## 技术栈
 
-- JUnit5 单元测试
-- 示例单元测试类
+- **后端框架**：Spring Boot
+- **数据库**：MySQL
+- **缓存**：Redis
+- **搜��引擎**：Elasticsearch
+- **对象存储**：腾讯云 COS
+- **支付**：支付宝
+- **AI 服务**：OpenAI GPT
+- **验证码**：极验验证码
 
-### 架构设计
+## 部署说明
 
-- 合理分层
+1. **环境准备**：确保已安装 JDK 17、Maven、MySQL、Redis、Elasticsearch。
+2. **配置文件**：根据 `src/main/resources/application.yml` 和 `src/main/resources/application-prod.yml`
+   配置数据库、Redis、Elasticsearch、COS 等信息。
+3. **打包部署**：使用 Maven 打包项目，并通过 Docker 部署。
+4. **启动服务**：运行 `java -jar target/springboot-Backend-0.0.1.jar --spring.profiles.active=prod` 启动服务。
 
-## 快速上手
+## 贡献指南
 
-### MySQL 数据库
+欢迎对本项目进行贡献！请遵循以下步骤：
 
-1）修改 `application.yml` 的数据库配置为你自己的：
+1. Fork 本仓库。
+2. 创建一个新的分支：`git checkout -b feature/your-feature-name`
+3. 提交您的更改：`git commit -m 'Add some feature'`
+4. 推送到分支：`git push origin feature/your-feature-name`
+5. 提交 Pull Request。
 
-```yml
-spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/my_db
-    username: root
-    password: 123456
-```
+## 联系方式
 
-2）执行 `sql/create.sql` 中的数据库语句，自动创建库表
+如有任何问题或建议，请通过以下方式联系我们：
 
-3）启动项目，访问 `http://localhost:8101/api/doc.html` 即可打开接口文档，不需要写前端就能在线调试接口了~
+- 邮箱：
 
-![](doc/swagger.png)
+感谢您对本项目的关注和支持！

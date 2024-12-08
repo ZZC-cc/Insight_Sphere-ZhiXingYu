@@ -146,6 +146,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public ProductVO getProductById(Long id, HttpServletRequest request) {
         Product product = this.getById(id);
+        if (product == null) {
+            return null;
+        }
         ProductVO productVO = ProductVO.objToVo(product);
         productVO.setUserVO(userService.getUserVO(product.getUserId()));
         QueryWrapper<Order> orderQueryWrapper = new QueryWrapper<>();
@@ -253,6 +256,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             throw new IllegalArgumentException("Invalid request type");
         }
 
+    }
+
+    @Override
+    public List<ProductVO> getVoByNumber(int number) {
+        QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
+        queryWrapper.last("limit " + number).orderByDesc("buyNum").orderByDesc("createTime");
+        List<Product> products = this.list(queryWrapper);
+        List<ProductVO> productVOS = products.stream().map(product -> ProductVO.objToVo(product)).collect(java.util.stream.Collectors.toList());
+        return productVOS;
     }
 
 }

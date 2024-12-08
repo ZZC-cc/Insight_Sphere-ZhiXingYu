@@ -31,4 +31,6 @@ public interface ProductService extends IService<Product> {
     ProductVO getProductById(Long id, HttpServletRequest request);
 
     List<ProductVO> getProductsByTags(String tags);
+
+    List<ProductVO> getVoByNumber(int number);
 }

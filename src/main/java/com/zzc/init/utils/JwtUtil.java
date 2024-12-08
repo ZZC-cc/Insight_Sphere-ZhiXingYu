@@ -28,12 +28,18 @@ public class JwtUtil {
             claims.put("username", user.getUsername());
             claims.put("name", user.getName());
             claims.put("role", user.getRole());
-            claims.put("avatar", user.getAvatar());
+            claims.put("avatar", (user.getAvatar() != null ? user.getAvatar() : null));
             claims.put("mobile", user.getMobile());
             claims.put("status", user.getStatus());
-            // 将 LocalDateTime 转换为字符串
+            claims.put("email", user.getEmail());
+            claims.put("description", (user.getDescription() != null ? user.getDescription() : null));
+            claims.put("sex", user.getSex());
+            claims.put("address", user.getAddress());
             claims.put("createTime", user.getCreateTime().format(formatter));
-            claims.put("updateTime", user.getUpdateTime().format(formatter));
+            claims.put("updateTime", (user.getUpdateTime() != null ? user.getUpdateTime().format(formatter) : null));
+            claims.put("vipStartTime", (user.getVipStartTime() != null ? user.getVipStartTime().format(formatter) : null));
+            claims.put("vipEndTime", (user.getVipEndTime() != null ? user.getVipEndTime().format(formatter) : null));
+
 
             return Jwts.builder()
                     .setClaims(claims)
@@ -46,7 +52,6 @@ public class JwtUtil {
         }
     }
 
-    // 验证 JWT
     // 验证 JWT，判断是否过期
     public static Claims validateToken(String token) {
         try {
@@ -77,6 +82,13 @@ public class JwtUtil {
         user.setAvatar(claims.get("avatar", String.class));
         user.setMobile(claims.get("mobile", String.class));
         user.setStatus(claims.get("status", Integer.class));
+        user.setEmail(claims.get("email", String.class));
+        user.setDescription(claims.get("description", String.class));
+        user.setSex(claims.get("sex", String.class));
+        user.setAddress(claims.get("address", String.class));
+        user.setVipStartTime(claims.get("vipStartTime", LocalDateTime.class));
+        user.setVipEndTime(claims.get("vipEndTime", LocalDateTime.class));
+
         // 处理 createTime
         String createTimeStr = claims.get("createTime", String.class);
         if (createTimeStr != null) {

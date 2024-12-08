@@ -1,7 +1,9 @@
 package com.zzc.init.admin.post.controller;
 
 import com.alibaba.excel.util.StringUtils;
-import com.zzc.init.admin.ChatGPT.service.ChatGPTService;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.zzc.init.admin.ai.model.entity.AIPlatform;
+import com.zzc.init.admin.ai.service.BaseAIService;
 import com.zzc.init.admin.comment.service.CommentService;
 import com.zzc.init.admin.post.model.dto.*;
 import com.zzc.init.admin.post.model.vo.PostVO;
@@ -12,8 +14,10 @@ import com.zzc.init.common.ErrorCode;
 import com.zzc.init.common.ResultUtils;
 import com.zzc.init.constant.UserConstant;
 import com.zzc.init.exception.BusinessException;
+import com.zzc.init.mapper.AIPlatformMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -35,7 +39,10 @@ public class PostController {
     private CommentService commentService;
 
     @Resource
-    private ChatGPTService chatGPTService;
+    private BaseAIService baseAIService;
+
+    @Autowired
+    private AIPlatformMapper aiPlatformMapper;
 
 
     @PostMapping("/add")
@@ -112,13 +119,17 @@ public class PostController {
     @PostMapping("/generateContent")
     @Operation(summary = "生成文章内容")
     public BaseResponse<String> generateContent(@RequestBody PostGenerateRequest request) {
-        String prompt = request.getPrompt();
+        String prompt = "你现在是一名文章编写机器人，善于用markdown语法编写优秀的文章。下面是提示词:" + request.getPrompt();
         if (StringUtils.isBlank(prompt)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "提示词不能为空");
         }
+        QueryWrapper<AIPlatform> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("platform_name", "ChatGPT");
+        AIPlatform chatGPT = aiPlatformMapper.selectOne(queryWrapper);
+
 
         // 调用 ChatGPTService 生成内容
-        String generatedContent = chatGPTService.generateContent(prompt);
+        String generatedContent = baseAIService.generateByPrompt(prompt, chatGPT.getId(), request.getModel());
         return ResultUtils.success(generatedContent);
     }
 
@@ -126,7 +137,11 @@ public class PostController {
     @Operation(summary = "生成文章总结")
     public BaseResponse<String> generateSummary(@RequestParam Long postId, HttpServletRequest request) {
         String content = postService.getPostById(postId, request).getContent();
-        String summary = chatGPTService.summarizePost(content);
+        String prompt = "你现在是一个AI总结机器人，专门用于对话内容的总结和分拣。{" + content + "}这是文章内容请你总结一段话，不用分点，不用markdown格式。";
+        QueryWrapper<AIPlatform> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("platform_name", "ChatGPT");
+        AIPlatform chatGPT = aiPlatformMapper.selectOne(queryWrapper);
+        String summary = baseAIService.generateByPrompt(prompt, chatGPT.getId(), "gpt-4o");
         return ResultUtils.success(summary);
     }
 
@@ -209,5 +224,15 @@ public class PostController {
     public BaseResponse<List<String>> getAllTags() {
         List<String> tags = postService.getAllTags();
         return ResultUtils.success(tags);
+    }
+
+    /**
+     * 获取用户收藏的所有帖子
+     */
+    @Operation(summary = "获取用户收藏的所有帖子")
+    @GetMapping("/get/favoured")
+    public BaseResponse<List<PostVO>> getFavouredPosts(HttpServletRequest request) {
+        List<PostVO> favouredPosts = postService.getFavouredPosts(request);
+        return ResultUtils.success(favouredPosts);
     }
 }

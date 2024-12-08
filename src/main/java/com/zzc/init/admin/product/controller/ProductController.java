@@ -76,7 +76,6 @@ public class ProductController {
      */
     @PostMapping("/get/all/vo")
     @Operation(summary = "获取所有教程VO列表")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<List<ProductVO>> getAllProductVO(HttpServletRequest request) {
         List<ProductVO> productVOS = productService.getAllProducts(request);
         return ResultUtils.success(productVOS);

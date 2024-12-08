@@ -4,7 +4,7 @@ spring:
     name: QuickInit Pro
   # 默认 dev 环境
   profiles:
-    active: prod
+    active: local
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher

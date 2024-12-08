@@ -61,4 +61,5 @@ public interface PostService extends IService<Post> {
     List<PostVO> searchSortedPostsFromEs(PostQueryRequest queryRequest);
 
 
+    List<PostVO> getFavouredPosts(HttpServletRequest request);
 }

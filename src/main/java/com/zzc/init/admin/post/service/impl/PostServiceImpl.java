@@ -497,16 +497,26 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
      */
     @Override
     public List<PostVO> getMyPostsVO(HttpServletRequest request) {
-        User loginUser = new User();
-        BeanUtils.copyProperties(userService.getLoginUser(request), loginUser);
+        UserVO loginUser = userService.getLoginUser(request);
 
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("userId", loginUser.getUser_id());
+        queryWrapper.eq("userId", loginUser.getUser_id()).orderByDesc("updateTime").orderByDesc("createTime");
         List<Post> posts = this.list(queryWrapper);
-        List<PostVO> postVOS = posts.stream().map(post1 -> PostVO.objToVo(post1)).collect(java.util.stream.Collectors.toList());
-        postVOS.forEach(postVO -> {
-            postVO.setUser(userService.getUserByUserId(loginUser.getUser_id()));
-        });
+        List<PostVO> postVOS = new ArrayList<>();
+        for (Post post : posts) {
+            PostVO postVO = PostVO.objToVo(post);
+            postVO.setUser(userService.getUserByUserId(post.getUserId()));
+            // 查询是否点赞
+            QueryWrapper<PostLike> thumbQuery = new QueryWrapper<>();
+            thumbQuery.eq("postId", postVO.getId()).eq("userId", loginUser.getUser_id());
+            postVO.setIsThumbed(postLikeMapper.selectCount(thumbQuery) > 0);
+
+            // 查询是否收藏
+            QueryWrapper<PostFavorite> favourQuery = new QueryWrapper<>();
+            favourQuery.eq("postId", postVO.getId()).eq("userId", loginUser.getUser_id());
+            postVO.setIsFavoured(postFavoriteMapper.selectCount(favourQuery) > 0);
+            postVOS.add(postVO);
+        }
         return postVOS;
     }
 
@@ -516,7 +526,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Override
     public List<PostVO> getPostsVOByNumber(int number) {
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
-        queryWrapper.last("limit " + number).orderByDesc("createTime");
+        queryWrapper.last("limit " + number).orderByDesc("viewsNum").orderByDesc("thumbNum").orderByDesc("favourNum").orderByDesc("createTime");
         List<Post> posts = this.list(queryWrapper);
         List<PostVO> postVOS = posts.stream().map(post1 -> PostVO.objToVo(post1)).collect(java.util.stream.Collectors.toList());
         postVOS.forEach(postVO -> {
@@ -626,6 +636,37 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return postTagUtils.getAllTags(posts);
     }
 
+    /**
+     * 获取用户收藏的所有帖子
+     */
+    @Override
+    public List<PostVO> getFavouredPosts(HttpServletRequest request) {
+        UserVO user = userService.getLoginUser(request);
+        QueryWrapper<PostFavorite> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", user.getUser_id()).orderByDesc("createTime");
+        List<PostFavorite> postFavorites = postFavoriteMapper.selectList(queryWrapper);
+        List<Long> postIds = postFavorites.stream().map(PostFavorite::getPostId).collect(Collectors.toList());
+        if (postIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Post> posts = this.listByIds(postIds);
+        List<PostVO> postVOS = new ArrayList<>();
+        for (Post post : posts) {
+            PostVO postVO = PostVO.objToVo(post);
+            postVO.setUser(userService.getUserByUserId(post.getUserId()));
+            // 查询是否点赞
+            QueryWrapper<PostLike> thumbQuery = new QueryWrapper<>();
+            thumbQuery.eq("postId", postVO.getId()).eq("userId", user.getUser_id());
+            postVO.setIsThumbed(postLikeMapper.selectCount(thumbQuery) > 0);
+
+            // 查询是否收藏
+            QueryWrapper<PostFavorite> favourQuery = new QueryWrapper<>();
+            favourQuery.eq("postId", postVO.getId()).eq("userId", user.getUser_id());
+            postVO.setIsFavoured(postFavoriteMapper.selectCount(favourQuery) > 0);
+            postVOS.add(postVO);
+        }
+        return postVOS;
+    }
 
 }
 

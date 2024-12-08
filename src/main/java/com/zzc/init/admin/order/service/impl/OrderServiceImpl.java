@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -52,23 +53,38 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         if (orderCreateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单参数错误");
         }
-
-        // 根据产品 ID 获取产品信息（假设有 ProductService）
-        Product product = productService.getById(orderCreateRequest.getProductId());
-        log.warn("Product:{}", product);
-        log.warn("orderCreateRequest:{}", orderCreateRequest);
-        if (product == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "商品不存在");
+        // 创建订单对象
+        Order order = new Order();
+        if (orderCreateRequest.getType().equals("普通订单")) {
+            Product product = productService.getById(orderCreateRequest.getProductId());
+            if (product == null) {
+                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "商品不存在");
+            }
+            order.setProductId(product.getId());
+            order.setMoney(BigDecimal.valueOf(product.getPrice()));
+        } else if (orderCreateRequest.getType().equals("会员订单")) {
+            int count = orderCreateRequest.getCount();
+            // 计算金额
+            BigDecimal money;
+            if (orderCreateRequest.getType().equals("会员订单")) {
+                if (count < 3) {
+                    money = new BigDecimal(19.9 * count);
+                } else if (3 <= count && count < 7) {
+                    money = new BigDecimal(19.9 * count * 0.8);
+                } else {
+                    money = new BigDecimal(19.9 * count * 0.6);
+                }
+                order.setMoney(money);
+            } else {
+                money = new BigDecimal(19.9 * count);
+            }
         }
 
         // 获取当前用户信息
         UserVO currentUser = userService.getLoginUser(request);
-
-        // 创建订单对象
-        Order order = new Order();
-        order.setProductId(product.getId());
         order.setUserId(currentUser.getUser_id());
-        order.setMoney(product.getPrice());
+        order.setType(orderCreateRequest.getType());
+        order.setCount(orderCreateRequest.getCount());
         order.setStatus(0); // 初始化状态为未支付
         order.setCreateTime(LocalDateTime.now());
         order.setUpdateTime(LocalDateTime.now());
@@ -103,9 +119,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         queryWrapper.eq("role", "vip");
         List<User> users = userService.list(queryWrapper);
         for (User user : users) {
-            if (user.getVipEndTime().isBefore(LocalDateTime.now())) {
-                user.setRole("user");
-                userService.updateById(user);
+            if (user.getVipStartTime() != null) {
+                if (user.getVipEndTime().isBefore(LocalDateTime.now())) {
+                    user.setRole("user");
+                    userService.updateById(user);
+                }
             }
         }
         return true;

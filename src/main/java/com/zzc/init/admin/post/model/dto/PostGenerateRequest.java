@@ -15,5 +15,7 @@ public class PostGenerateRequest implements Serializable {
      */
     private String prompt;
 
+    private String model;
+
     private static final long serialVersionUID = 1L;
 }

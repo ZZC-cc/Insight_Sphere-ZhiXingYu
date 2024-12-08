@@ -1,3 +1,0 @@
-natapp.exe -authtoken=97d014572bceb22d
-vtyljn6711@sandbox.com
-111111

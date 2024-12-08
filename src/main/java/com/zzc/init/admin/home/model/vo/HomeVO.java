@@ -1,5 +1,6 @@
 package com.zzc.init.admin.home.model.vo;
 
+import com.zzc.init.admin.ai.model.entity.AIPlatform;
 import com.zzc.init.admin.comment.model.vo.CommentVO;
 import com.zzc.init.admin.notice.model.entity.Notice;
 import com.zzc.init.admin.order.model.vo.OrderVO;
@@ -70,6 +71,8 @@ public class HomeVO implements Serializable {
      * 最近的商品
      */
     List<ProductVO> productList;
+
+    List<AIPlatform> AITop10;
 
     Notice notice;
 

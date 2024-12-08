@@ -28,6 +28,11 @@
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!--支付宝沙盒-->
         <!-- https://mvnrepository.com/artifact/com.alipay.sdk/alipay-easysdk -->
         <dependency>

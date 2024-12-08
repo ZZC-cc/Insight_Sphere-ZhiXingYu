@@ -11,7 +11,5 @@ import com.zzc.init.admin.home.model.vo.HomeVO;
 public interface HomeService extends IService<Home> {
 
 
-    int addVisitCount();
-
     HomeVO getHomeVO();
 }
