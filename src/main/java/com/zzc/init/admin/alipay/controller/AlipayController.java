@@ -72,12 +72,14 @@ public class AlipayController {
             if ("TRADE_SUCCESS".equals(tradeStatus)) {
                 // 更新订单状态为已支付
                 Order order = orderMapper.selectById(Long.valueOf(outTradeNo));
-                Product product = productMapper.selectById(order.getProductId());
                 if (order != null && order.getStatus() == 0) {
                     order.setStatus(1);
                     order.setPaymentMethod("支付宝");
                     order.setPayTime(java.time.LocalDateTime.now());
                     orderMapper.updateById(order);
+                }
+                if (order.getProductId() != null) {
+                    Product product = productMapper.selectById(order.getProductId());
                     product.setBuyNum(product.getBuyNum() + 1);
                     productMapper.updateById(product);
                 }
@@ -110,6 +112,4 @@ public class AlipayController {
             log.error("支付成功页面跳转失败", e);
         }
     }
-
-
 }
