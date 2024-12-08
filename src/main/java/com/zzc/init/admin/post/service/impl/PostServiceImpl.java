@@ -116,7 +116,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     public void syncIncrementalPostsToEs() {
         // 查询近 5 分钟内的数据
         Date fiveMinutesAgoDate = new Date(new Date().getTime() - 5 * 60 * 1000L);
-        List<Post> postList = baseMapper.listPostWithDelete(fiveMinutesAgoDate);
+        List<Post> postList = this.baseMapper.listPostWithDelete(fiveMinutesAgoDate);
         if (CollUtil.isEmpty(postList)) {
             log.info("增量同步文章：过去5分钟没有文章");
             return;

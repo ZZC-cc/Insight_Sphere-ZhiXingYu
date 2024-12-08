@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -61,22 +60,22 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
                 throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "商品不存在");
             }
             order.setProductId(product.getId());
-            order.setMoney(BigDecimal.valueOf(product.getPrice()));
+            order.setMoney(product.getPrice());
         } else if (orderCreateRequest.getType().equals("会员订单")) {
             int count = orderCreateRequest.getCount();
             // 计算金额
-            BigDecimal money;
+            Double money;
             if (orderCreateRequest.getType().equals("会员订单")) {
                 if (count < 3) {
-                    money = new BigDecimal(19.9 * count);
+                    money = 19.9 * count;
                 } else if (3 <= count && count < 7) {
-                    money = new BigDecimal(19.9 * count * 0.8);
+                    money = 19.9 * count * 0.8;
                 } else {
-                    money = new BigDecimal(19.9 * count * 0.6);
+                    money = 19.9 * count * 0.6;
                 }
                 order.setMoney(money);
             } else {
-                money = new BigDecimal(19.9 * count);
+                money = 19.9 * count;
             }
         }
 

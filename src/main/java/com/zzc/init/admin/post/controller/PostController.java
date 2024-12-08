@@ -124,12 +124,12 @@ public class PostController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "提示词不能为空");
         }
         QueryWrapper<AIPlatform> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("platform_name", "ChatGPT");
-        AIPlatform chatGPT = aiPlatformMapper.selectOne(queryWrapper);
+        queryWrapper.eq("platform_name", "GLM-4-Plus");
+        AIPlatform aiPlatform = aiPlatformMapper.selectOne(queryWrapper);
 
 
         // 调用 ChatGPTService 生成内容
-        String generatedContent = baseAIService.generateByPrompt(prompt, chatGPT.getId(), request.getModel());
+        String generatedContent = baseAIService.generateByPrompt(prompt, "GLM-4-Plus");
         return ResultUtils.success(generatedContent);
     }
 
@@ -141,7 +141,7 @@ public class PostController {
         QueryWrapper<AIPlatform> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("platform_name", "ChatGPT");
         AIPlatform chatGPT = aiPlatformMapper.selectOne(queryWrapper);
-        String summary = baseAIService.generateByPrompt(prompt, chatGPT.getId(), "gpt-4o");
+        String summary = baseAIService.generateByPrompt(prompt, "GLM-4-Plus");
         return ResultUtils.success(summary);
     }
 

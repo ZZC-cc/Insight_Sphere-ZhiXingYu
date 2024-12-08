@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -30,7 +29,7 @@ public class Order implements Serializable {
     /**
      * 支付金额
      */
-    private BigDecimal money;
+    private Double money;
 
     /**
      * 支付方式

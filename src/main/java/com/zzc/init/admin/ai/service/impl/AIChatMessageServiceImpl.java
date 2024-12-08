@@ -167,7 +167,7 @@ public class AIChatMessageServiceImpl extends ServiceImpl<AIChatMessageMapper, A
                 "标题-xxx";
 
         // 调用 AI 服务生成标题和概述
-        String aiResponse = baseAIService.generateByPrompt(prompt, platformId, model);
+        String aiResponse = baseAIService.generateByPrompt(prompt, model);
 
         String title = aiResponse.replace("标题-", "").trim();
         String summary = content.substring(0, Math.min(content.length(), 60)).trim();

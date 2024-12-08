@@ -129,9 +129,12 @@ public class BaseAIService {
 //        }
 //    }
 
-    public String generateByPrompt(String prompt, Long platformId, String model) {
-        AIPlatform platformConfig = getPlatformConfig(platformId);
+    public String generateByPrompt(String prompt, String model) {
         QueryWrapper<AIModel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("model_name", model);
+        Long platformId = aiModelMapper.selectOne(queryWrapper).getPlatform_id();
+        AIPlatform platformConfig = getPlatformConfig(platformId);
+
         queryWrapper.eq("model_name", model);
         AIModel aiModel = aiModelMapper.selectOne(queryWrapper);
         String apiKey = aiModel.getApi_key();
